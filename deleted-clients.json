@@ -1,0 +1,56 @@
+[
+    {
+        "name": "Client 1",
+        "email": "sample@client.com",
+        "rate": 20,
+        "units": "$/hr",
+        "entries": {
+            "uninvoiced": {}
+        }
+    },
+    {
+        "name": "Client 1",
+        "email": "sample@client.com",
+        "rate": 20,
+        "units": "$/hr",
+        "entries": {
+            "uninvoiced": {}
+        }
+    },
+    {
+        "name": "Client 1",
+        "email": "sample@client.com",
+        "rate": 20,
+        "units": "$/hr",
+        "entries": {
+            "uninvoiced": {}
+        }
+    },
+    {
+        "name": "Client 1",
+        "email": "sample@client.com",
+        "rate": 20,
+        "units": "$/hr",
+        "entries": {
+            "uninvoiced": {}
+        }
+    },
+    {
+        "name": "Client 1",
+        "email": "sample@client.com",
+        "rate": 20,
+        "units": "$/hr",
+        "entries": {
+            "uninvoiced": {}
+        }
+    },
+    {
+        "name": "Client 1",
+        "email": "sample@client.com",
+        "rate": 20,
+        "units": "$/hr",
+        "entries": {
+            "uninvoiced": {}
+        }
+    }
+]

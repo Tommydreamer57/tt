@@ -1,29 +1,46 @@
 const pfs = require('../functions/promise-fs');
+const removeNullValues = require('../functions/remove-null-values');
 
-const get = name => {
-    const clients = require('../../clients.json');
+const write = clients => pfs.writeFile(`${__dirname}/../../clients.json`, JSON.stringify(clients, null, 4));
+
+const writeDeleted = deleted => pfs.writeFile(`${__dirname}/../../deleted-clients.json`, JSON.stringify(deleted, null, 4));
+
+const get = async name => {
+    const clients = await pfs.readJSON(`${__dirname}/../../clients.json`);
     if (name === undefined) return clients;
     if (name in clients) return clients[name];
     throw new Error(`Cannot get client: '${name}', existing clients are '${Object.keys(clients).join(`', '`)}'`);
 }
 
-const find = identifier => [
-    (name = '', client) => name === identifier,
-    (name, { email = '' }) => email === identifier,
-    (name = '', client) => name.toLowerCase() === identifier.toLowerCase(),
-    (name, { email = '' }) => email.toLowerCase() === identifier.toLowerCase(),
-].reduce((clients, cb) => (
-    Array.isArray(clients) ?
-        clients.reduce((found, [name, client]) => (
-            found || (
-                cb(name, client)
-                &&
-                client
-            )
-        ), null) || clients
-        :
-        clients
-), Object.entries(get()));
+const getDeleted = async () => (await pfs.readJSON(`${__dirname}/../../deleted-clients.json`)) || [];
+
+const find = async (identifier = '') => {
+    if (typeof identifier !== 'string') throw new Error(`Invalid identifier: '${identifier}', must be string`);
+    const clients = await get();
+    const [client] = [
+        (name = '', client) => name === identifier,
+        (name, { email = '' }) => email === identifier,
+        (name = '', client) => name.toLowerCase() === identifier.toLowerCase(),
+        (name, { email = '' }) => email.toLowerCase() === identifier.toLowerCase(),
+    ].reduce(([found, clients], cb) => (
+        found ?
+            [found]
+            :
+            [
+                clients.reduce((found, [name, client]) => (
+                    found || (
+                        cb(name, client) ?
+                            client
+                            :
+                            undefined
+                    )
+                ), undefined),
+                clients
+            ]
+    ), [undefined, Object.entries(clients)]);
+    if (!client) throw new Error(`Could not find client: '${identifier}', please specify client by name or email: ${Object.entries(clients).map(([name, { email }]) => `'${name}' - '${email}'`)}`);
+    return client;
+}
 
 const validate = ({
     name,
@@ -49,7 +66,7 @@ const validate = ({
     }
 }
 
-const create = ({
+const create = async ({
     name,
     email,
     rate,
@@ -57,7 +74,7 @@ const create = ({
 }) => {
     validate({ name, email, rate, units });
     if (!name || !name.trim()) throw new Error(`Cannot create client with no name, please enter a name`);
-    const oldClients = get();
+    const oldClients = await get();
     const existingClient = oldClients[name];
     if (existingClient) throw new Error(`Cannot create, client with name: '${name}' already exists`);
     const newClients = {
@@ -72,20 +89,45 @@ const create = ({
             },
         },
     };
-    pfs.writeFile(`${__dirname}/../../clients.json`, JSON.stringify(newClients, null, 4));
+    write(newClients);
 }
 
-const update = (identifier, {
+const update = async (identifier, {
     name,
     email,
     rate,
     units,
 }) => {
+    const oldClients = await get();
+    const oldClient = await find(identifier);
     validate({ name, email, rate, units });
+    const newClient = {
+        ...oldClient,
+        ...removeNullValues({
+            name,
+            email,
+            rate,
+            units,
+        }),
+    };
+    const newClients = removeNullValues({
+        ...oldClients,
+        [oldClient.name]: undefined,
+        [newClient.name]: newClient,
+    });
+    write(newClients);
 }
 
-const _delete = identifier => {
-
+const _delete = async identifier => {
+    const oldClients = await get();
+    const client = await find(identifier);
+    const newClients = removeNullValues({
+        ...oldClients,
+        [client.name]: undefined,
+    });
+    const deleted = await getDeleted();
+    await writeDeleted(deleted.concat(client));
+    write(newClients);
 }
 
 module.exports = {

@@ -12,6 +12,8 @@ const readFile = file => new Promise((resolve, reject) => fs.readFile(file, (err
     resolve(contents)
 ));
 
+const readJSON = async file => JSON.parse(await readFile(file));
+
 const readdirContents = async  dir => Promise.all((await readdir(dir)).map(readFile));
 
 const writeFile = (path, contents) => new Promise((resolve, reject) => fs.writeFile(path, contents, err => err ?
@@ -29,6 +31,7 @@ const removeFile = path => new Promise((resolve, reject) => fs.unlink(path, err 
 module.exports = {
     readdir,
     readFile,
+    readJSON,
     readdirContents,
     writeFile,
     removeFile,

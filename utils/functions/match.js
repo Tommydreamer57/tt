@@ -36,6 +36,8 @@ const match = (...inputs) => ({
     finally: () => { throw new Error(`Must use \`otherwise()\` before using finally()`) },
 });
 
+const matchAsync = promise => promise.then(match);
+
 const onlyOneInput = (inputs, obj) => Object.entries(obj).reduce((acc, [fnName, cb]) => ({
     ...acc,
     [fnName]: inputs.length <= 1 ?
@@ -49,4 +51,5 @@ const onlyOneInput = (inputs, obj) => Object.entries(obj).reduce((acc, [fnName, 
 module.exports = {
     final,
     match,
+    matchAsync,
 };

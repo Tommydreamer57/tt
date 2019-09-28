@@ -1,6 +1,6 @@
 const pfs = require('../functions/promise-fs');
 const clients = require('./clients');
-const { match } = require('../functions/match');
+const { match, matchAsync } = require('../functions/match');
 
 const keys = {
     defaultClient: "default-client",
@@ -9,27 +9,27 @@ const keys = {
     noGit: "no-git",
 };
 
-const get = key => {
-    const settings = require('../../settings.json');;
+const write = settings => pfs.writeFile(`${__dirname}/../../settings.json`, JSON.stringify(settings, null, 4));
+
+const get = async key => {
+    const settings = await pfs.readJSON(`${__dirname}/../../settings.json`);
     if (key === undefined) return settings;
     if (key in settings) return settings[key];
     throw new Error(`Cannot get '${key}', can only get '${Object.keys(settings).join(`', '`)}'`);
 };
 
-const set = async (key, value) => match(key)
+const set = (key, value) => match(key)
     .against({
         'undefined': () => {
             throw new Error(`Cannot set '${key}' to undefined, please enter a value`);
         },
-        [keys.defaultClient]: match(value)
-            .on(clients.get, () => {
-                const oldSettings = get();
-                const newSettings = { ...oldSettings, [key]: value };
-                return pfs.writeFile(`${__dirname}/../../settings.json`, JSON.stringify(newSettings, null, 4))
-            })
-            .otherwise(() => {
-                throw new Error(`Cannot set '${key}' to '${value}'`)
-            }),
+        [keys.defaultClient]: async () => {
+            const client = await clients.get(value);
+            if (!client) throw new Error(`Cannot set '${key}' to '${value}'`)
+            const oldSettings = await get();
+            const newSettings = { ...oldSettings, [key]: value };
+            return write(newSettings);
+        },
         [keys.outputDir]: () => {
             throw new Error(`Cannot set '${key}', can only set '${keys.defaultClient}'`);
         },

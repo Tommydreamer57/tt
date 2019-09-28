@@ -5,22 +5,7 @@
         "rate": 20,
         "units": "$/hr",
         "entries": {
-            "uninvoiced": {
-                "1-1-2019-8:00": {
-                    "hours": 1.5,
-                    "description": "sample time entry"
-                }
-            },
-            "1-1-2018-22:30": {
-                "1-1-2018-8:00": {
-                    "hours": 4,
-                    "description": "did some stuff"
-                },
-                "1-1-2018-13:30": {
-                    "hours": 3,
-                    "description": "did some stuff"
-                }
-            }
+            "uninvoiced": {}
         }
     }
 }
