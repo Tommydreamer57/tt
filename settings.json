@@ -1,0 +1,6 @@
+{
+    "default-client": "Sample Client",
+    "output-dir": "./",
+    "storage-dir": "./",
+    "no-git": false
+}
